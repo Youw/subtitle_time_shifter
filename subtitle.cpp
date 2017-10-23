@@ -41,21 +41,26 @@ void Subtitle::parseFrom(std::wistream& input)
   do {
       std::getline(input,buf);
       buf = trim(buf);
-    } while (buf==L"" && input);
+    } while (buf.empty() && input);
+
+  if (buf.empty())
+      throw NoSubtitles();
+
   try {
     id = std::stoi(buf);
-  } catch (std::invalid_argument&) {
-    throw std::invalid_argument("Error parsing subtitle id.");
+  } catch (const std::invalid_argument&) {
+    std::string tmp(buf.begin(), buf.end());
+    throw std::runtime_error(std::string("Error parsing subtitle id: ") + tmp);
   }
 
   input >> subtitle_duration;
 
   std::getline(input,buf);
-  buf=trim(buf);
+  buf=rtrim(buf);
   while(buf!=L"" && input) {
       lines.push_back(buf);
       std::getline(input,buf);
-      buf=trim(buf);
+      buf=rtrim(buf);
     }
 
   lines.shrink_to_fit();

@@ -1,4 +1,5 @@
 #include <chrono>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 
@@ -14,7 +15,7 @@ void printError(const std::string& text)
 void printHelp()
 {
   std::cerr << "Usage:" << std::endl
-            << program_name << " addsec|addmilli <valid value>" << std::endl;
+            << program_name << " (addsec|addmilli) <valid value> <in filename> (<out filename> | -)" << std::endl;
 }
 
 
@@ -22,7 +23,7 @@ void printHelp()
 int main(int argc, char** argv)
 {  
   program_name = argv[0];
-  if(argc!=3) {
+  if(argc < 5) {
       printHelp();
       return 0;
     }
@@ -37,16 +38,42 @@ int main(int argc, char** argv)
       } else {
         printError("Invalid parameter.");
         printHelp();
+        return 1;
       }
   } catch (std::invalid_argument&) {
     printError("Error parsing argument...");
     printHelp();
-    return 0;
+    return 1;
   }
 
-  Subtitles test(std::wcin);
-  test.shiftAll(shift_for_subtitles);
-  std::wcout << test << std::endl;
+  Subtitles subtitles;
+
+  if (argc < 3)
+      subtitles.parseFrom(std::wcin);
+  else
+  {
+      std::wfstream file(argv[3], std::ios::in);
+      if (!file.is_open())
+      {
+          printError(std::string("Cannot open '") + argv[3] + "'");
+          return 1;
+      }
+      subtitles.parseFrom(file);
+  }
+
+  const char *out_filename = argv[4] == std::string("-") ? argv[3] : argv[4];
+
+  subtitles.shiftAll(shift_for_subtitles);
+  {
+    std::wfstream file(out_filename, std::ios::out);
+    if (!file.is_open())
+    {
+        printError(std::string("Cannot open '") + out_filename + "'");
+        return 1;
+    }
+    file << subtitles << std::endl;
+  }
+
   return 0;
 }
 

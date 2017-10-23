@@ -5,8 +5,18 @@
 
 #include <chrono>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
+
+class NoSubtitles: public std::exception
+{
+public:
+    const char *what() const noexcept override
+    {
+        return "Subtitle is empty";
+    }
+};
 
 class Subtitle
 {

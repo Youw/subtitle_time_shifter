@@ -1,5 +1,8 @@
 #include "subtitles.h"
 
+#include <iostream>
+#include <stdexcept>
+
 Subtitles::Subtitles()
 {
 
@@ -19,10 +22,12 @@ void Subtitles::parseFrom(std::wistream& input)
         input >> buf;
         subtitles.push_back(buf);
       }
-  } catch(...) {
-
+  } catch (const NoSubtitles &) {
+    // done
+  }  catch (const std::exception &e) {
+    std::wclog << "Error reading subtitle " << subtitles.size() + 1 << ": " << e.what() << std::endl;
   }
-  subtitles.shrink_to_fit();
+  std::wclog << "Read " << subtitles.size() << " entries." << std::endl;
 }
 
 void Subtitles::printTo(std::wostream& output) const
